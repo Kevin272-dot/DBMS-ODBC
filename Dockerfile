@@ -50,10 +50,11 @@ RUN mkdir -p /opt/oracle \
     && unzip -oq /tmp/ic-basic.zip -d /opt/oracle \
     && unzip -oq /tmp/ic-odbc.zip -d /opt/oracle \
     && rm -f /tmp/ic-basic.zip /tmp/ic-odbc.zip \
-    && echo "/opt/oracle/instantclient_*" > /etc/ld.so.conf.d/oracle-instantclient.conf \
+    && echo "/opt/oracle/instantclient_23_26" > /etc/ld.so.conf.d/oracle-instantclient.conf \
     && ldconfig
 
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    LD_LIBRARY_PATH=/opt/oracle/instantclient_23_26
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
