@@ -598,8 +598,36 @@ function App() {
 function Login({ onLogin, apiStatus }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [heroStats, setHeroStats] = useState(null);
+
+  useEffect(() => {
+    if (apiStatus !== "oracle" && apiStatus !== "demo") return undefined;
+
+    let cancelled = false;
+
+    async function loadHeroStats() {
+      try {
+        const data = await apiRequest("/dashboard/stats");
+
+        if (!cancelled) {
+          setHeroStats(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setHeroStats(null);
+        }
+      }
+    }
+
+    loadHeroStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [apiStatus]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -622,6 +650,26 @@ function Login({ onLogin, apiStatus }) {
       setLoading(false);
     }
   }
+
+  function fillCredentials() {
+    setUsername("admin");
+    setPassword("admin123");
+  }
+
+  const heroNumbers = [
+    {
+      label: "Disasters tracked",
+      value: heroStats ? heroStats.disasters?.total : undefined,
+    },
+    {
+      label: "Incidents logged",
+      value: heroStats ? heroStats.incidents?.total : undefined,
+    },
+    {
+      label: "Volunteers ready",
+      value: heroStats ? heroStats.volunteers?.available : undefined,
+    },
+  ];
 
   return (
     <div className="login-screen">
@@ -647,26 +695,99 @@ function Login({ onLogin, apiStatus }) {
 
         <form className="login-form" onSubmit={handleSubmit}>
           <label htmlFor="username">Username</label>
-          <input
-            id="username"
-            autoComplete="username"
-            autoFocus
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="Enter your username"
-            required
-          />
+          <div className="input-wrap">
+            <span className="input-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </span>
+            <input
+              id="username"
+              className="has-icon"
+              autoComplete="username"
+              autoFocus
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Enter your username"
+              required
+            />
+          </div>
 
           <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
-            required
-          />
+          <div className="input-wrap">
+            <span className="input-icon" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <input
+              id="password"
+              className="has-icon has-toggle"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {error && <div className="form-error">{error}</div>}
 
@@ -682,6 +803,13 @@ function Login({ onLogin, apiStatus }) {
               Oracle is offline. Use <strong>admin</strong> /{" "}
               <strong>admin123</strong> to explore sample data.
             </span>
+            <button
+              type="button"
+              className="fill-button"
+              onClick={fillCredentials}
+            >
+              Fill
+            </button>
           </div>
         ) : (
           <div className="account-hint">
@@ -690,6 +818,13 @@ function Login({ onLogin, apiStatus }) {
               Use the account created in your database: <strong>admin</strong>{" "}
               / <strong>admin123</strong>
             </span>
+            <button
+              type="button"
+              className="fill-button"
+              onClick={fillCredentials}
+            >
+              Fill
+            </button>
           </div>
         )}
 
@@ -720,22 +855,64 @@ function Login({ onLogin, apiStatus }) {
             A central workspace for disaster events, incident reporting,
             resource allocation, volunteers and relief requests.
           </p>
+
+          <div className="hero-stats">
+            {heroNumbers.map((item) => (
+              <div className="hero-stat" key={item.label}>
+                <strong>
+                  {item.value === undefined || item.value === null
+                    ? "—"
+                    : formatNumber(item.value)}
+                </strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="hero-source">
+            <span
+              className={`online-dot ${
+                apiStatus === "demo" ? "dot-demo" : ""
+              }`}
+            />
+            {apiStatus === "demo"
+              ? "DEMO DATA · IN-MEMORY STORE"
+              : "LIVE FROM ORACLE CLOUD · RENDER API"}
+          </div>
+
           <div className="aside-rule" />
-          <div className="aside-stat-row">
-            <div>
-              <strong>01</strong>
-              <span>Situational awareness</span>
+          <div className="aside-features">
+            <div className="aside-feature">
+              <span className="aside-feature-icon">▦</span>
+              <div className="aside-feature-copy">
+                <strong>Situational awareness</strong>
+                <span>Disasters, incidents and severity at a glance</span>
+              </div>
             </div>
-            <div>
-              <strong>02</strong>
-              <span>Resource coordination</span>
+            <div className="aside-feature">
+              <span className="aside-feature-icon">▤</span>
+              <div className="aside-feature-copy">
+                <strong>Resource coordination</strong>
+                <span>Supplies, quantities and availability in one place</span>
+              </div>
             </div>
-            <div>
-              <strong>03</strong>
-              <span>Response tracking</span>
+            <div className="aside-feature">
+              <span className="aside-feature-icon">↗</span>
+              <div className="aside-feature-copy">
+                <strong>Response tracking</strong>
+                <span>Volunteers and relief requests end to end</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <div className="tech-chips">
+          <span>React</span>
+          <span>Express</span>
+          <span>Oracle Cloud</span>
+          <span>ODBC</span>
+          <span>Render</span>
+        </div>
+
         <div className="aside-footer">
           DISASTER RESPONSE · OPERATIONS PLATFORM
         </div>

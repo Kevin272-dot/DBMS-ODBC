@@ -1321,13 +1321,17 @@ input:focus:not(:focus-visible) {
   font-weight: 700;
 }
 
+.input-wrap {
+  position: relative;
+  margin-bottom: 21px;
+}
+
 .login-form input {
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   padding: 12px 13px;
-  margin-bottom: 21px;
   border: 1px solid #e0e5eb;
-  border-radius: 8px;
+  border-radius: 9px;
   outline: none;
   background: #fff;
   color: #303b49;
@@ -1335,6 +1339,45 @@ input:focus:not(:focus-visible) {
   transition:
     border 150ms ease,
     box-shadow 150ms ease;
+}
+
+.login-form input.has-icon {
+  padding-left: 42px;
+}
+
+.login-form input.has-toggle {
+  padding-right: 48px;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  display: grid;
+  place-items: center;
+  color: #9aa5b3;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #8b95a1;
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  background: #f1f4f8;
+  color: #4a5866;
 }
 
 .login-form input:focus {
@@ -1367,6 +1410,23 @@ input:focus:not(:focus-visible) {
   color: #ad4033;
   font-size: 13px;
   line-height: 1.6;
+}
+
+.fill-button {
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  margin-left: auto;
+  border: 1px solid rgba(71, 121, 195, 0.35);
+  border-radius: 6px;
+  background: rgba(71, 121, 195, 0.1);
+  color: #3b6eae;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background 150ms ease;
+}
+
+.fill-button:hover {
+  background: rgba(71, 121, 195, 0.2);
 }
 
 .login-footnote {
@@ -1545,28 +1605,149 @@ input:focus:not(:focus-visible) {
   background: #dc6958;
 }
 
-.aside-stat-row {
+.hero-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 17px;
+  gap: 10px;
+  margin-top: 30px;
 }
 
-.aside-stat-row > div {
+.hero-stat {
+  padding: 15px 14px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}
+
+.hero-stat strong {
+  display: block;
+  color: #f4f6f8;
+  font-family: "Manrope", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.hero-stat span {
+  display: block;
+  margin-top: 7px;
+  color: #9fb0be;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.hero-source {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 13px;
+  color: #8fa3b3;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+}
+
+.hero-source .online-dot {
+  width: 6px;
+  height: 6px;
+}
+
+.aside-features {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 16px;
 }
 
-.aside-stat-row strong {
-  color: #e47b6a;
-  font-family: "DM Mono", monospace;
+.aside-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.aside-feature-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 37px;
+  height: 37px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ed8b7a;
+  font-size: 17px;
+}
+
+.aside-feature-copy strong {
+  display: block;
+  color: #eef1f4;
   font-size: 13px;
+  font-weight: 700;
 }
 
-.aside-stat-row span {
-  color: #bac3cc;
-  font-size: 12px;
+.aside-feature-copy span {
+  display: block;
+  margin-top: 4px;
+  color: #9fb0be;
+  font-size: 11px;
   line-height: 1.6;
+}
+
+.tech-chips {
+  position: absolute;
+  right: 25px;
+  bottom: 54px;
+  left: 25px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tech-chips span {
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #93a3b1;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-panel {
+  animation: login-rise 420ms ease-out both;
+}
+
+.aside-content {
+  animation: login-rise 420ms ease-out 90ms both;
+}
+
+@media (max-height: 800px) {
+  .tech-chips {
+    display: none;
+  }
+
+  .hero-stats {
+    margin-top: 20px;
+  }
+
+  .aside-rule {
+    margin: 24px 0 22px;
+  }
 }
 
 .aside-footer {
@@ -2045,10 +2226,6 @@ input:focus:not(:focus-visible) {
 
   .login-heading h1 {
     font-size: 34px;
-  }
-
-  .aside-stat-row {
-    gap: 10px;
   }
 
   .toast {
