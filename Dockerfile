@@ -47,8 +47,8 @@ RUN mkdir -p /opt/oracle \
        https://download.oracle.com/otn_software/linux/instantclient/2326200/instantclient-basiclite-linux.x64-23.26.2.0.0.zip \
     && curl -fSL -o /tmp/ic-odbc.zip \
        https://download.oracle.com/otn_software/linux/instantclient/2326200/instantclient-odbc-linux.x64-23.26.2.0.0.zip \
-    && unzip -q /tmp/ic-basic.zip -d /opt/oracle \
-    && unzip -q /tmp/ic-odbc.zip -d /opt/oracle \
+    && unzip -oq /tmp/ic-basic.zip -d /opt/oracle \
+    && unzip -oq /tmp/ic-odbc.zip -d /opt/oracle \
     && rm -f /tmp/ic-basic.zip /tmp/ic-odbc.zip \
     && echo "/opt/oracle/instantclient_*" > /etc/ld.so.conf.d/oracle-instantclient.conf \
     && ldconfig
