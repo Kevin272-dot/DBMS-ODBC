@@ -1,0 +1,16 @@
+# Render Blueprint for the DisasterOS API.
+# Deploy: Render Dashboard -> New -> Blueprint -> pick this repository.
+# You will be asked for ORACLE_CONNECTION_STRING (it is a secret, not stored here).
+services:
+  - type: web
+    name: disasteros-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: REQUIRE_ORACLE
+        value: "1"
+      - key: ORACLE_CONNECTION_STRING
+        sync: false

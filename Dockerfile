@@ -1,38 +1,48 @@
-# Build stage
-FROM node:22-bookworm-slim AS build
+# DisasterOS API container with Oracle Instant Client ODBC (Oracle Linux 9).
+# Used for cloud deployment (Render/Railway/Fly/VPS). On a host without the
+# Oracle driver installed, the API simply falls back to demo mode.
+#
+# Build:  docker build -t disasteros-api .
+# Run:    docker run -p 5000:5000 \
+#           -e REQUIRE_ORACLE=1 \
+#           -e ORACLE_CONNECTION_STRING='Driver={Oracle ODBC Driver};Dbq=//host:1522/service;Uid=admin;Pwd=...;' \
+#           disasteros-api
+
+FROM container-registry.oracle.com/os/oraclelinux:9-slim
+
+# unixODBC + Oracle Instant Client (ODBC driver), Node.js and native build
+# toolchain (needed to compile the `odbc` npm package against unixODBC).
+RUN dnf install -y oraclelinux-release-el9 \
+    && dnf install -y \
+        unixODBC \
+        unixODBC-devel \
+        oracle-instantclient-release-el9 \
+        libaio \
+        gcc-c++ \
+        make \
+        python3 \
+    && dnf install -y \
+        oracle-instantclient-basiclite \
+        oracle-instantclient-odbc \
+    && (dnf module enable -y nodejs:22 || dnf module enable -y nodejs:20 || true) \
+    && dnf install -y nodejs npm \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+RUN npm install --no-audit --no-fund
+
 COPY . .
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
-# Runtime stage
-FROM node:22-bookworm-slim
-WORKDIR /app
+ENV NODE_ENV=production
 
-# Oracle ODBC driver (Instant Client + unixODBC) — REQUIRED for real Oracle mode
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    unixodbc \
-    libaio1 \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-# Optionally download Oracle Instant Client + ODBC here if not using a DSN:
-#   ENV ORACLE_BASE /opt/oracle
-#   (download instantclient-basic-linux.x64 and instantclient-odbc-linux.x64,
-#    extract to /opt/oracle, then register the driver in /etc/odbcinst.ini)
-
-COPY --from=build /app/package*.json ./
-RUN npm install --omit=dev --ignore-scripts
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/src/server ./src/server
-COPY --from=build /app/eslint.config.js ./
-
-# Provide the ODBC driver config; adjust driver name to match your install.
-ENV ORACLE_DRIVER_NAME="Oracle ODBC Driver"
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 5000
-ENV PORT=5000
-# Set these at deploy time:
-#   REQUIRE_ORACLE=1
-#   ORACLE_CONNECTION_STRING='Driver={Oracle ODBC Driver};Dbq=//db-host:1521/ORCL;Uid=user;Pwd=secret;'
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "src/server/server.js"]

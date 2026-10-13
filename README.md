@@ -19,6 +19,12 @@ and relief requests, plus a command-center dashboard with live statistics.
 ```
 ├── index.html               # Vite entry
 ├── vite.config.js           # Dev proxy /api -> http://localhost:5000
+├── Dockerfile               # Deployable API image (Oracle Instant Client ODBC)
+├── render.yaml              # Render Blueprint (API hosting)
+├── vercel.json              # Vercel frontend + /api proxy to Render
+├── db/
+│   ├── schema.sql           # Oracle tables, keys, constraints
+│   └── seed.sql             # Sample data
 ├── src/
 │   ├── App.jsx              # React application (single page, no router)
 │   ├── index.css            # Styles
@@ -150,6 +156,31 @@ Check it really connected via `GET /api/health` → `{"database":"oracle",...}`.
    `tnsnames.ora`, connect without the wallet by disabling mutual TLS for the
    DB and using easy-connect syntax:
    `Dbq=//adb.yourregion.oraclecloud.com:1522/YOURDB_low`.
+
+### Deploying to Render (API) + Vercel (frontend)
+
+The repository ships with `Dockerfile` (Oracle Instant Client ODBC registered
+at container start), `render.yaml` and `vercel.json`, so both deploys are
+dashboard clicks:
+
+1. **Render** — Dashboard → New → **Blueprint** → select this GitHub repo.
+   Render reads `render.yaml` and asks for `ORACLE_CONNECTION_STRING`; paste:
+
+   ```
+   Driver={Oracle ODBC Driver};Dbq=//adb.<region>.oraclecloud.com:1522/<dbname>_low.adb.oraclecloud.com;Uid=admin;Pwd=<ADMIN_PASSWORD>;
+   ```
+
+   Deploy. Check `https://<service>.onrender.com/api/health` →
+   `{"database":"oracle","demo":false}`. If the service name is not
+   `disasteros-api`, either rename it or update the URL in `vercel.json`.
+   (Free instances sleep after inactivity — the first request can take ~1 min.)
+2. **Vercel** — Dashboard → Add New → Project → import this repo → framework
+   auto-detects Vite → Deploy. `vercel.json` proxies `/api/*` to the Render
+   API, so no environment variables are needed. If you prefer a direct API
+   URL instead of the proxy, set `VITE_API_URL=https://<service>.onrender.com/api`
+   (the API sends permissive CORS headers) and delete the rewrite.
+3. Open the Vercel URL, sign in (`admin` / `admin123`), and confirm the sidebar
+   says **Oracle connected**.
 
 ### Where to host Oracle (free / cheap)
 
