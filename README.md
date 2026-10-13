@@ -89,8 +89,54 @@ The API expects these tables (column names in ALL_CAPS):
 - **Frontend** — a static build (`npm run build`) can be hosted on Vercel,
   Netlify or GitHub Pages. Point it at a hosted API with
   `VITE_API_URL=https://your-api.example.com/api` (the API enables CORS).
-- **Backend** — the Express API can be deployed to Render, Railway or Fly.io,
-  but Oracle over ODBC only works on a machine with the Oracle client/DSN
-  (typically your college lab Windows PC). On cloud hosts it will run in
-  **demo mode** automatically unless you configure a reachable Oracle
-  database and the ODBC driver.
+- **Backend** — the Express API can be deployed to Render, Railway or Fly.io.
+  It connects to Oracle through the `odbc` package, which needs the **Oracle
+  ODBC driver** (Instant Client + unixODBC) installed on the host. Without
+  that, the API falls back to demo mode. See `Dockerfile` for a container
+  that installs the required system packages.
+
+### Running with a real Oracle database (outside demo mode)
+
+The server uses Oracle instead of demo data when all three of these are true:
+
+1. The `odbc` npm package can be loaded (installed as an optional dependency —
+   if it failed to build, the host is missing the Oracle client/driver).
+2. The Oracle ODBC driver is registered (a DSN like `OracleLab` on Windows, or
+   a driver entry in `/etc/odbcinst.ini` on Linux).
+3. Oracle itself is reachable over the network from the host.
+
+Deploy-time environment variables:
+
+| Variable                   | Purpose                                                            |
+| -------------------------- | ------------------------------------------------------------------ |
+| `ORACLE_CONNECTION_STRING` | Full ODBC connection string, bypasses DSN. Example: `Driver={Oracle ODBC Driver};Dbq=//db-host:1521/ORCL;Uid=user;Pwd=pass;` |
+| `ORACLE_DSN` / `UID` / `PWD` | DSN-based connection (default `OracleLab` / `25BCE1823` / `25bce1823`) |
+| `TNS_ADMIN`                | Directory with `tnsnames.ora` / `sqlnet.ora` (for wallet-based connects) |
+| `REQUIRE_ORACLE=1`         | **Fail to start** instead of falling back to demo mode (recommended in production so a silent demo never hides a broken DB) |
+| `PORT`                     | API port (default 5000)                                            |
+
+Check it really connected via `GET /api/health` → `{"database":"oracle",...}`.
+
+### Where to host Oracle (free / cheap)
+
+If the college lab Oracle 11g is not reachable from the internet, host Oracle
+yourself:
+
+1. **Oracle Cloud Always Free Autonomous DB** (recommended, $0, unlimited
+   time) — sign up at oracle.com/cloud/free. You get 2 Always Free Autonomous
+   Database instances (20 GB storage each, 30 sessions). It runs Oracle 19c/
+   23ai/26ai, is publicly reachable (TLS), and accepts ODBC via the Instant
+   Client ODBC driver with the connection wallet. Create the six tables from
+   the schema section above, then use `ORACLE_CONNECTION_STRING` +
+   `TNS_ADMIN`.
+2. **Oracle AI Database Free on any VPS** — Oracle AI Database Free (formerly
+   XE) is free to install on Ubuntu (Hetzner, Contabo, DigitalOcean VPS from
+   ~€4/month). Full control, closest to your 11g lab setup; requires Linux
+   sysadmin work (install DB, register ODBC driver, open port 1521).
+3. **Tunnel from the lab PC** — if you must keep using the lab Oracle 11g
+   machine, expose port 1521 with a Cloudflare Tunnel or ngrok. Zero cloud
+   cost and no schema migration, but the PC must stay on and you must secure
+   the tunnel (IP allow-list, strong credentials). Only for demos/presentations.
+
+> Your app's SQL is Oracle 11g-flavoured (TO_DATE, NVL, ROWNUM pagination)
+> and runs unmodified on 19c/23ai/26ai and Oracle AI Database Free.

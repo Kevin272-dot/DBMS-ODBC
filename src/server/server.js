@@ -14,11 +14,18 @@ process.env.TNS_ADMIN =
   process.env.TNS_ADMIN ||
   String.raw`C:\oracle\app\oracle\product\11.2.0\server\network\admin`;
 
+// Full ODBC connection string (overrides the DSN-based connection below).
+// Example for a Linux host with the Oracle Instant Client ODBC driver:
+//   ORACLE_CONNECTION_STRING='Driver={Oracle ODBC Driver};Dbq=//db.example.com:1521/ORCL;Uid=user;Pwd=pass;'
+const directConnectionString = process.env.ORACLE_CONNECTION_STRING;
+
 // For this college lab, OracleLab is configured as a 64-bit User DSN.
 // You can override these credentials with environment variables.
-const connectionString = `DSN=${process.env.ORACLE_DSN || "OracleLab"};UID=${
-  process.env.ORACLE_UID || "25BCE1823"
-};PWD=${process.env.ORACLE_PASSWORD || "25bce1823"};`;
+const connectionString =
+  directConnectionString ||
+  `DSN=${process.env.ORACLE_DSN || "OracleLab"};UID=${
+    process.env.ORACLE_UID || "25BCE1823"
+  };PWD=${process.env.ORACLE_PASSWORD || "25bce1823"};`;
 
 app.use(cors({ origin: true }));
 app.use(express.json());
@@ -222,6 +229,13 @@ async function initDatabase() {
     const { connection, currentTime } = await connectOracle();
     db = connection;
     console.log("Connected to Oracle through ODBC.");
+    console.log(
+      `Target: ${
+        directConnectionString
+          ? "ORACLE_CONNECTION_STRING"
+          : process.env.ORACLE_DSN || "OracleLab"
+      }`,
+    );
     console.log(`Oracle time: ${currentTime ?? "unknown"}`);
   } catch (error) {
     if (REQUIRE_ORACLE) {
