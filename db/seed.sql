@@ -16,7 +16,7 @@ DELETE FROM USERS;
 -- for this lab application - the API compares them directly)
 -- ----------------------------------------------------------------------------
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD, FULL_NAME, ROLE) VALUES
-  (1, 'admin',    'admin123',    'Asha Menon',    'ADMIN');
+  (1, 'admin',    'admin123',    'L Kevin Daniel', 'ADMIN');
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD, FULL_NAME, ROLE) VALUES
   (2, 'operator', 'operator123', 'Kiran Rao',     'OPERATOR');
 INSERT INTO USERS (USER_ID, USERNAME, PASSWORD, FULL_NAME, ROLE) VALUES

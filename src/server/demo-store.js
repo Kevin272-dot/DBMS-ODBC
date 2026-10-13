@@ -8,7 +8,7 @@ const SEED_USERS = [
     id: 1,
     username: "admin",
     password: "admin123",
-    name: "Asha Menon",
+    name: "L Kevin Daniel",
     role: "ADMIN",
   },
   {
