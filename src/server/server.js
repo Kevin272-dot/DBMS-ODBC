@@ -224,6 +224,22 @@ async function connectOracle() {
   return { connection, currentTime: result[0]?.CURRENT_TIME ?? null };
 }
 
+function describeError(error) {
+  const lines = [error.message || String(error)];
+  const details = error.odbcErrors;
+
+  if (Array.isArray(details)) {
+    for (const item of details) {
+      const text = [item.state, item.code, item.message]
+        .filter(Boolean)
+        .join(" ");
+      if (text) lines.push(`ODBC: ${text}`);
+    }
+  }
+
+  return lines.join("\n  ");
+}
+
 async function initDatabase() {
   try {
     const { connection, currentTime } = await connectOracle();
@@ -239,17 +255,18 @@ async function initDatabase() {
     console.log(`Oracle time: ${currentTime ?? "unknown"}`);
   } catch (error) {
     if (REQUIRE_ORACLE) {
-      console.error("Failed to start backend:", error.message);
+      console.error("Failed to start backend:");
+      console.error(`  ${describeError(error)}`);
       console.error(
-        "Check the OracleLab DSN, Oracle credentials, and TNS_ADMIN path, " +
-          "or unset REQUIRE_ORACLE to run in demo mode.",
+        "Check ORACLE_CONNECTION_STRING, network ACL / mutual TLS settings, " +
+          "credentials and service name, or unset REQUIRE_ORACLE to run in demo mode.",
       );
       process.exit(1);
     }
 
     store = createDemoStore();
     console.warn("--------------------------------------------------------");
-    console.warn("  Oracle is not reachable: " + error.message);
+    console.warn(`  Oracle is not reachable: ${describeError(error)}`);
     console.warn("  Running in DEMO MODE with in-memory sample data.");
     console.warn("  Log in with admin / admin123 (see README).");
     console.warn("  Changes are NOT saved to Oracle and reset on restart.");
