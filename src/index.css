@@ -602,6 +602,118 @@ input:focus:not(:focus-visible) {
   transform: translateY(1px);
 }
 
+/* Dashboard status strip */
+
+.status-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 17px;
+}
+
+.status-tile {
+  min-width: 0;
+  padding: 16px 17px 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.status-tile-label {
+  color: #8a939e;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+}
+
+.status-tile-main {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.status-tile-main strong {
+  overflow: hidden;
+  color: #2c3541;
+  font-family: "Manrope", sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-tile-sub {
+  margin-top: 8px;
+  color: #8a939e;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ops-value {
+  color: #202a36;
+  font-family: "Manrope", sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1;
+}
+
+.ops-of {
+  color: #8a939e;
+  font-size: 11px;
+}
+
+.ops-meter {
+  height: 6px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef1f5;
+}
+
+.ops-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #46bd8b;
+  transition: width 300ms ease;
+}
+
+.ops-meter > span.ops-meter-low {
+  background: #e2a33c;
+}
+
+.ops-meter > span.ops-meter-empty {
+  background: #d05a4a;
+}
+
+.data-path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.data-path span {
+  padding: 4px 10px;
+  border: 1px solid #e7eaf0;
+  border-radius: 999px;
+  background: #f8f9fb;
+  color: #596473;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-path i {
+  color: #b2bac4;
+  font-size: 11px;
+  font-style: normal;
+}
+
 /* Dashboard metrics */
 
 .section-heading,
@@ -2066,6 +2178,11 @@ input:focus:not(:focus-visible) {
 }
 
 @media (max-width: 620px) {
+  .status-strip {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
   .topbar {
     min-height: 59px;
     padding: 0 15px;

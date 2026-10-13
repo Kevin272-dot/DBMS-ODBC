@@ -343,6 +343,7 @@ function App() {
   const [notice, setNotice] = useState(null);
   const [apiStatus, setApiStatus] = useState("checking");
   const [operationsLeft, setOperationsLeft] = useState(null);
+  const [opsLimit, setOpsLimit] = useState(100);
 
   useEffect(() => {
     function onOperations(event) {
@@ -365,6 +366,10 @@ function App() {
 
         if (!cancelled) {
           setApiStatus(data.demo ? "demo" : "oracle");
+
+          if (Number(data.operationsPerDay) > 0) {
+            setOpsLimit(Number(data.operationsPerDay));
+          }
         }
       } catch {
         if (!cancelled) {
@@ -568,7 +573,12 @@ function App() {
 
         <div className="page-content">
           {activePage === "dashboard" ? (
-            <Dashboard onNavigate={setActivePage} apiStatus={apiStatus} />
+            <Dashboard
+              onNavigate={setActivePage}
+              apiStatus={apiStatus}
+              operationsLeft={operationsLeft}
+              opsLimit={opsLimit}
+            />
           ) : (
             <ModulePage
               key={activePage}
@@ -921,7 +931,7 @@ function Login({ onLogin, apiStatus }) {
   );
 }
 
-function Dashboard({ onNavigate, apiStatus }) {
+function Dashboard({ onNavigate, apiStatus, operationsLeft, opsLimit }) {
   const [stats, setStats] = useState(EMPTY_STATS);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -969,6 +979,9 @@ function Dashboard({ onNavigate, apiStatus }) {
     setError("");
     setReloadKey((key) => key + 1);
   }, []);
+
+  const connection =
+    CONNECTION_STATES[apiStatus] || CONNECTION_STATES.checking;
 
   const cards = [
     {
@@ -1111,6 +1124,68 @@ function Dashboard({ onNavigate, apiStatus }) {
             <span className="metric-arrow">↗</span>
           </button>
         ))}
+      </div>
+
+      <div className="status-strip">
+        <div className="status-tile">
+          <div className="status-tile-label">DATABASE CONNECTION</div>
+          <div className="status-tile-main">
+            <span className={`online-dot ${connection.dotClass}`} />
+            <strong>{connection.title}</strong>
+          </div>
+          <div className="status-tile-sub">{connection.subtitle}</div>
+        </div>
+
+        <div className="status-tile">
+          <div className="status-tile-label">OPERATIONS LEFT TODAY</div>
+          {operationsLeft === null ? (
+            <div className="status-tile-main">
+              <span className="ops-value">—</span>
+            </div>
+          ) : (
+            <>
+              <div className="status-tile-main">
+                <span className="ops-value">
+                  {formatNumber(operationsLeft)}
+                </span>
+                <span className="ops-of">
+                  of {formatNumber(opsLimit)} operations
+                </span>
+              </div>
+              <div className="ops-meter">
+                <span
+                  className={
+                    operationsLeft <= 0
+                      ? "ops-meter-empty"
+                      : operationsLeft <= 20
+                        ? "ops-meter-low"
+                        : ""
+                  }
+                  style={{
+                    width: `${Math.max(
+                      0,
+                      Math.min(100, (operationsLeft / opsLimit) * 100),
+                    )}%`,
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="status-tile">
+          <div className="status-tile-label">DATA PATH</div>
+          <div className="data-path">
+            <span>Vercel</span>
+            <i>→</i>
+            <span>Render API</span>
+            <i>→</i>
+            <span>Oracle Cloud</span>
+          </div>
+          <div className="status-tile-sub">
+            React SPA · Express + ODBC (unixODBC)
+          </div>
+        </div>
       </div>
 
       <div className="dashboard-lower">

@@ -349,6 +349,7 @@ app.get("/api/health", (_req, res) => {
     status: "online",
     database: store ? "demo" : "oracle",
     demo: Boolean(store),
+    operationsPerDay: DAILY_OPERATION_LIMIT,
     time: new Date().toISOString(),
   });
 });
