@@ -1,9 +1,9 @@
 #!/bin/sh
-# Registers the Oracle Instant Client ODBC driver (installed via RPM) with
+# Registers the Oracle Instant Client ODBC driver (ZIP or RPM install) with
 # unixODBC at container start, then runs the API server.
 set -e
 
-DRIVER_LIB=$(find /usr/lib/oracle -name "libsqora.so*" 2>/dev/null | head -n 1 || true)
+DRIVER_LIB=$(find /opt/oracle /usr/lib/oracle -name "libsqora.so*" 2>/dev/null | head -n 1 || true)
 
 if [ -n "$DRIVER_LIB" ]; then
   {
