@@ -4,10 +4,12 @@
 
 **Sign in with:** `admin` / `admin123`
 
-> A full-stack disaster management system: **React (Vite)** frontend hosted on
-> Vercel, **Node.js + Express** API hosted on Render, and a real
-> **Oracle Autonomous Database (26ai)** in Oracle Cloud, accessed through
-> **ODBC** (Oracle Instant Client + unixODBC).
+> A full-stack disaster management system, deployed live: the **React (Vite)**
+> frontend is hosted on **Vercel**, the **Node.js + Express** backend runs on
+> **Render**, and the data lives in a real **Oracle Cloud Autonomous Database
+> (26ai)** accessed through **ODBC** (Oracle Instant Client + unixODBC).
+> In other words: Oracle Cloud is the database behind it, reached through the
+> Render-hosted API.
 
 ---
 
@@ -23,6 +25,8 @@
   incidents cannot be deleted)
 - **Connection-aware UI** — sidebar/topbar show `Oracle connected`, `Demo mode`
   or `API offline` in real time
+- **Daily operation limit** — 100 data operations per user per day, enforced by
+  the API (configurable, see below); the topbar shows the remaining budget
 - **Auto demo mode** — if Oracle is unreachable, the API falls back to an
   in-memory store so the app always runs (used for local development)
 - **Responsive layout** — works from phones to wide desktop screens
@@ -109,6 +113,7 @@ so no CORS setup is needed in development.
 | `ORACLE_DSN` / `ORACLE_UID` / `ORACLE_PASSWORD` | DSN-based connection (default: `OracleLab` / `25BCE1823` / `25bce1823`) |
 | `TNS_ADMIN`                | Folder with `tnsnames.ora` / `sqlnet.ora` (wallet-based connections) |
 | `REQUIRE_ORACLE=1`         | Fail instead of demo fallback                                        |
+| `DAILY_OPERATION_LIMIT`    | Data operations allowed per user per day (default `100`)             |
 | `PORT`                     | API port (default `5000`; Render sets this automatically)            |
 
 Example connection string (Oracle Cloud, mTLS **not required**):
@@ -119,6 +124,19 @@ Driver={Oracle ODBC Driver};Dbq=(description=(retry_count=20)(retry_delay=3)(add
 
 Check the mode at any time: `GET /api/health` →
 `{"database":"oracle","demo":false}` or `{"database":"demo","demo":true}`.
+
+### Daily operation limit
+
+Every data operation (list, create, update, delete, dashboard stats) counts
+against a **100 operations/day** budget per user:
+
+- The frontend sends an `X-User` header (the logged-in username); without it
+  the limit applies per IP address
+- Health checks, the connectivity probe and login are **not** counted
+- Exceeding the limit returns `HTTP 429` with a clear message; the topbar chip
+  shows the remaining operations (`N ops left today`) and turns amber below 20
+- Counters are in-memory: they reset at midnight UTC and on server restart
+- Adjust with the `DAILY_OPERATION_LIMIT` environment variable
 
 ## Database (Oracle)
 
@@ -206,6 +224,7 @@ the API with `LD_LIBRARY_PATH` pointing at the driver libraries.
 | `ORA-12545` / connection reset | Wrong service name, or ACL blocking the host / mTLS still required |
 | First request very slow | Render free instance waking from sleep (~30–60 s) |
 | Login page shows **API offline** | API not running or still cold-starting; the indicator refreshes every 30 s |
+| `429 Daily operation limit reached` | The 100 ops/day budget is used; it resets at midnight UTC or set `DAILY_OPERATION_LIMIT` |
 
 ## License
 

@@ -27,8 +27,67 @@ const connectionString =
     process.env.ORACLE_UID || "25BCE1823"
   };PWD=${process.env.ORACLE_PASSWORD || "25bce1823"};`;
 
-app.use(cors({ origin: true }));
+app.use(
+  cors({
+    origin: true,
+    exposedHeaders: ["X-Operations-Remaining"],
+  }),
+);
 app.use(express.json());
+app.set("trust proxy", true);
+
+// ---------------------------------------------------------------------------
+// Daily operation limit: every data operation (read, create, update, delete,
+// dashboard queries) counts against a 100 operations/day budget per user
+// (identified by the X-User header sent by the frontend) or per IP address
+// when no user is known. Counters are in-memory and reset at midnight UTC.
+// ---------------------------------------------------------------------------
+const DAILY_OPERATION_LIMIT = Math.max(
+  1,
+  Number(process.env.DAILY_OPERATION_LIMIT || 100),
+);
+
+const operationCounters = new Map();
+
+function trackOperation(req, res) {
+  const user = (req.get("x-user") || "").trim().toLowerCase();
+  const key = user ? `user:${user}` : `ip:${req.ip || "unknown"}`;
+  const day = new Date().toISOString().slice(0, 10);
+
+  let entry = operationCounters.get(key);
+
+  if (!entry || entry.day !== day) {
+    entry = { day, count: 0 };
+    operationCounters.set(key, entry);
+  }
+
+  if (entry.count >= DAILY_OPERATION_LIMIT) {
+    res.set("X-Operations-Remaining", "0");
+    res.status(429).json({
+      message:
+        `Daily operation limit reached (${DAILY_OPERATION_LIMIT} operations per day). ` +
+        "The limit resets at midnight UTC.",
+    });
+    return false;
+  }
+
+  entry.count += 1;
+  res.set(
+    "X-Operations-Remaining",
+    String(DAILY_OPERATION_LIMIT - entry.count),
+  );
+  return true;
+}
+
+app.use("/api", (req, res, next) => {
+  if (["/health", "/connect", "/login"].includes(req.path)) {
+    return next();
+  }
+
+  if (trackOperation(req, res)) {
+    next();
+  }
+});
 
 let db = null;
 let store = null;

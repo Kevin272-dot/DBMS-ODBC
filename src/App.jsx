@@ -193,6 +193,15 @@ const EMPTY_STATS = {
   reliefRequests: { total: 0, pending: 0 },
 };
 
+function storedUserHeader() {
+  try {
+    const user = JSON.parse(localStorage.getItem("disasterUser") || "null");
+    return user && user.username ? { "X-User": user.username } : {};
+  } catch {
+    return {};
+  }
+}
+
 async function apiRequest(path, options = {}) {
   let response;
 
@@ -201,12 +210,20 @@ async function apiRequest(path, options = {}) {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...storedUserHeader(),
         ...(options.headers || {}),
       },
     });
   } catch {
     throw new Error(
       "Cannot reach the API server. Start the backend with: npm run server",
+    );
+  }
+
+  const remaining = response.headers.get("x-operations-remaining");
+  if (remaining !== null) {
+    window.dispatchEvent(
+      new CustomEvent("odbc:operations", { detail: Number(remaining) }),
     );
   }
 
@@ -297,8 +314,8 @@ const CONNECTION_STATES = {
   },
   oracle: {
     dotClass: "",
-    title: "Oracle connected",
-    subtitle: "Live database records",
+    title: "Oracle Cloud connected",
+    subtitle: "Autonomous DB · API via Render",
   },
   demo: {
     dotClass: "dot-demo",
@@ -325,6 +342,16 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notice, setNotice] = useState(null);
   const [apiStatus, setApiStatus] = useState("checking");
+  const [operationsLeft, setOperationsLeft] = useState(null);
+
+  useEffect(() => {
+    function onOperations(event) {
+      setOperationsLeft(event.detail);
+    }
+
+    window.addEventListener("odbc:operations", onOperations);
+    return () => window.removeEventListener("odbc:operations", onOperations);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -454,10 +481,25 @@ function App() {
               <strong>{user.name || user.username}</strong>
               <small>{user.role || "USER"}</small>
             </div>
-            <button className="logout-button" onClick={logout} title="Log out">
-              ↗
-            </button>
           </div>
+          <button className="logout-button" onClick={logout}>
+            <svg
+              viewBox="0 0 24 24"
+              width="15"
+              height="15"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign out
+          </button>
         </div>
       </aside>
 
@@ -478,6 +520,20 @@ function App() {
             </div>
           </div>
           <div className="topbar-right">
+            {operationsLeft !== null && (
+              <span
+                className={`ops-chip ${
+                  operationsLeft <= 0
+                    ? "ops-empty"
+                    : operationsLeft <= 20
+                      ? "ops-low"
+                      : ""
+                }`}
+                title="Daily API operation limit (reads, creates, updates, deletes)"
+              >
+                {operationsLeft} ops left today
+              </span>
+            )}
             <span className="live-indicator">
               <span
                 className={
@@ -530,7 +586,7 @@ function App() {
             {apiStatus === "demo"
               ? "Demo data · in-memory store"
               : apiStatus === "oracle"
-                ? "Oracle Database · local environment"
+                ? "Oracle Cloud Autonomous Database · API on Render"
                 : "Connect the backend to load data"}
           </span>
         </footer>
@@ -651,7 +707,7 @@ function Login({ onLogin, apiStatus }) {
             ? "API server offline · run npm run server in the project folder"
             : apiStatus === "demo"
               ? "Demo workspace · in-memory data, not Oracle"
-              : "Secure local workspace · Oracle-backed data"}
+              : "Oracle Cloud Autonomous Database · API hosted on Render"}
         </div>
       </section>
 
@@ -803,6 +859,14 @@ function Dashboard({ onNavigate, apiStatus }) {
           <div className="date-chip">
             <span>◷</span> {today}
           </div>
+          <div className="date-chip source-chip">
+            <span>☁</span>
+            {apiStatus === "demo"
+              ? "Demo data · in-memory"
+              : apiStatus === "offline"
+                ? "API offline"
+                : "Oracle Cloud · via Render"}
+          </div>
           <button className="secondary-button" onClick={refresh}>
             <span>↻</span> Refresh
           </button>
@@ -825,7 +889,9 @@ function Dashboard({ onNavigate, apiStatus }) {
           <p>
             {apiStatus === "demo"
               ? "In-memory sample records (Oracle offline)"
-              : "Current records from your Oracle database"}
+              : apiStatus === "offline"
+                ? "Waiting for the API server"
+                : "Live records from Oracle Cloud, served by the Render API"}
           </p>
         </div>
         <span className="data-label">
