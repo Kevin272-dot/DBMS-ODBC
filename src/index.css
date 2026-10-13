@@ -20,7 +20,7 @@
   --sidebar: #17222d;
   --sidebar-muted: #93a0ad;
   --radius: 13px;
-  --shadow: 0 2px 12px rgba(28, 39, 51, 0.035);
+  --shadow: 0 1px 2px rgba(28, 39, 51, 0.04), 0 8px 24px rgba(28, 39, 51, 0.045);
 }
 
 * {
@@ -45,7 +45,7 @@ button,
 input,
 select,
 textarea {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 button {
@@ -79,7 +79,13 @@ input:focus:not(:focus-visible) {
 .app-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--page-bg);
+  background:
+    radial-gradient(
+      1100px 520px at 100% 0%,
+      rgba(200, 76, 59, 0.05),
+      transparent 60%
+    ),
+    var(--page-bg);
 }
 
 .sidebar {
@@ -90,7 +96,7 @@ input:focus:not(:focus-visible) {
   flex-direction: column;
   width: 248px;
   padding: 25px 15px 16px;
-  background: var(--sidebar);
+  background: linear-gradient(180deg, #1c2a38 0%, #141e29 100%);
   color: white;
 }
 
@@ -132,7 +138,7 @@ input:focus:not(:focus-visible) {
   margin-top: 3px;
   color: #8e9aa7;
   font-family: "DM Mono", monospace;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1.05px;
 }
 
@@ -141,7 +147,7 @@ input:focus:not(:focus-visible) {
   margin-bottom: 11px;
   color: #768593;
   font-family: "DM Mono", monospace;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.3px;
 }
 
@@ -251,14 +257,14 @@ input:focus:not(:focus-visible) {
 
 .system-indicator strong {
   color: #e0e7ec;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .system-indicator small {
   margin-top: 4px;
   color: #8996a3;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .profile {
@@ -279,7 +285,7 @@ input:focus:not(:focus-visible) {
   border-radius: 50%;
   background: #3b4d5e;
   color: #f6f7f9;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -291,7 +297,7 @@ input:focus:not(:focus-visible) {
 .profile-info strong {
   overflow: hidden;
   color: #f2f4f6;
-  font-size: 11px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -300,7 +306,7 @@ input:focus:not(:focus-visible) {
   margin-top: 4px;
   color: #94a1ae;
   font-family: "DM Mono", monospace;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.5px;
 }
 
@@ -356,7 +362,7 @@ input:focus:not(:focus-visible) {
   align-items: center;
   gap: 11px;
   color: #929aa5;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .breadcrumb strong {
@@ -373,7 +379,7 @@ input:focus:not(:focus-visible) {
   align-items: center;
   gap: 8px;
   color: #66717f;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .live-indicator span {
@@ -381,6 +387,14 @@ input:focus:not(:focus-visible) {
   height: 6px;
   border-radius: 50%;
   background: #43b98a;
+}
+
+.live-indicator span.live-demo {
+  background: #e2a33c;
+}
+
+.live-indicator span.live-offline {
+  background: #d05a4a;
 }
 
 .topbar-avatar {
@@ -424,7 +438,7 @@ input:focus:not(:focus-visible) {
   border-top: 1px solid var(--border);
   background: #fff;
   color: #98a0aa;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* Page headings */
@@ -441,7 +455,7 @@ input:focus:not(:focus-visible) {
   margin: 7px 0 9px;
   color: #222a35;
   font-family: "Manrope", sans-serif;
-  font-size: clamp(26px, 2.4vw, 34px);
+  font-size: clamp(28px, 2.6vw, 37px);
   font-weight: 800;
   letter-spacing: -1.4px;
   line-height: 1.2;
@@ -454,14 +468,14 @@ input:focus:not(:focus-visible) {
 .page-heading p {
   margin: 0;
   color: #828b97;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
 .eyebrow {
   color: #b34a3b;
   font-family: "DM Mono", monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 1.45px;
 }
@@ -483,11 +497,11 @@ input:focus:not(:focus-visible) {
   border-radius: 8px;
   background: #fff;
   color: #657080;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .date-chip span {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .primary-button,
@@ -496,24 +510,28 @@ input:focus:not(:focus-visible) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 9px 14px;
+  min-height: 42px;
+  padding: 10px 16px;
   border: 1px solid transparent;
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: 9px;
+  font-size: 13px;
   font-weight: 600;
   transition:
     background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
     transform 150ms ease;
 }
 
 .primary-button {
-  background: var(--accent);
+  background: linear-gradient(180deg, #d25a48, #c84c3b);
+  box-shadow: 0 2px 8px rgba(200, 76, 59, 0.28);
   color: white;
 }
 
 .primary-button:hover {
-  background: var(--accent-dark);
+  background: linear-gradient(180deg, #c84c3b, #a9382a);
+  box-shadow: 0 5px 16px rgba(200, 76, 59, 0.34);
 }
 
 .secondary-button {
@@ -551,7 +569,7 @@ input:focus:not(:focus-visible) {
   margin: 0;
   color: #2c3541;
   font-family: "Manrope", sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.3px;
 }
@@ -560,7 +578,7 @@ input:focus:not(:focus-visible) {
 .panel-heading p {
   margin: 5px 0 0;
   color: #8a939e;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -570,7 +588,7 @@ input:focus:not(:focus-visible) {
   gap: 8px;
   color: #78828e;
   font-family: "DM Mono", monospace;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.8px;
 }
 
@@ -618,7 +636,7 @@ input:focus:not(:focus-visible) {
 
 .metric-label {
   color: #727d8b;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -662,7 +680,7 @@ input:focus:not(:focus-visible) {
   margin: 15px 0 5px;
   color: #202a36;
   font-family: "Manrope", sans-serif;
-  font-size: clamp(25px, 2.4vw, 33px);
+  font-size: clamp(28px, 2.6vw, 37px);
   font-weight: 800;
   letter-spacing: -1.3px;
   line-height: 1.1;
@@ -671,7 +689,7 @@ input:focus:not(:focus-visible) {
 .metric-detail {
   padding-right: 8px;
   color: #8a939e;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -680,11 +698,23 @@ input:focus:not(:focus-visible) {
   right: 13px;
   bottom: 12px;
   color: #bdc4cc;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .loading-dash {
   color: #c5cbd3;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Dashboard lower panels */
@@ -718,7 +748,7 @@ input:focus:not(:focus-visible) {
   border: 0;
   background: transparent;
   color: #bd4b3b;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -743,7 +773,7 @@ input:focus:not(:focus-visible) {
   background: #fafbfc;
   color: #89929d;
   font-family: "DM Mono", monospace;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.35px;
   white-space: nowrap;
@@ -754,7 +784,7 @@ input:focus:not(:focus-visible) {
   padding: 14px 16px;
   border-bottom: 1px solid #f0f2f5;
   color: #596473;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
   vertical-align: middle;
 }
@@ -771,7 +801,7 @@ input:focus:not(:focus-visible) {
   max-width: 230px;
   overflow: hidden;
   color: #303a46;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -782,7 +812,7 @@ input:focus:not(:focus-visible) {
   overflow: hidden;
   margin-top: 3px;
   color: #929aa4;
-  font-size: 9px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -790,17 +820,29 @@ input:focus:not(:focus-visible) {
 .status {
   display: inline-flex;
   align-items: center;
-  max-width: 150px;
-  padding: 5px 8px;
+  gap: 6px;
+  max-width: 170px;
+  padding: 5px 10px;
   overflow: hidden;
   border: 1px solid #e7eaf0;
-  border-radius: 5px;
+  border-radius: 999px;
   background: #f5f6f8;
   color: #697483;
-  font-size: 9px;
+  font-size: 11px;
+  font-weight: 500;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.status::before {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+  content: "";
 }
 
 .status-good {
@@ -864,13 +906,13 @@ input:focus:not(:focus-visible) {
 
 .quick-copy strong {
   color: #36404c;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .quick-copy small {
   color: #9099a4;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .quick-arrow {
@@ -905,19 +947,19 @@ input:focus:not(:focus-visible) {
   border-radius: 50%;
   background: #edf4fc;
   color: #6282a9;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .coordination-note strong {
   color: #526070;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .coordination-note p {
   margin: 5px 0 0;
   color: #89929e;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -955,13 +997,13 @@ input:focus:not(:focus-visible) {
 .summary-copy strong {
   color: #303a46;
   font-family: "Manrope", sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
 }
 
 .summary-copy span {
   color: #8b95a0;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .summary-divider {
@@ -1010,7 +1052,7 @@ input:focus:not(:focus-visible) {
   outline: none;
   background: transparent;
   color: #394452;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .search-box input::placeholder {
@@ -1043,7 +1085,7 @@ input:focus:not(:focus-visible) {
   border: 1px solid #e8ebef;
   border-radius: 7px;
   background: white;
-  font-size: 15px;
+  font-size: 16px;
   transition: background 150ms ease;
 }
 
@@ -1085,7 +1127,7 @@ input:focus:not(:focus-visible) {
   border-top: 1px solid #edf0f3;
   background: #fcfcfd;
   color: #9099a4;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 /* Empty states and errors */
@@ -1114,14 +1156,14 @@ input:focus:not(:focus-visible) {
 .empty-state strong {
   color: #394351;
   font-family: "Manrope", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .empty-state p {
   margin: 7px 0 16px;
   color: #929ba6;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -1136,7 +1178,7 @@ input:focus:not(:focus-visible) {
   border-radius: 9px;
   background: #fff4f2;
   color: #a53e31;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .error-banner strong {
@@ -1211,7 +1253,7 @@ input:focus:not(:focus-visible) {
   max-width: 340px;
   margin: 0;
   color: #828c98;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.8;
 }
 
@@ -1223,7 +1265,7 @@ input:focus:not(:focus-visible) {
 .login-form label {
   margin: 0 0 8px;
   color: #404b59;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -1237,7 +1279,7 @@ input:focus:not(:focus-visible) {
   outline: none;
   background: #fff;
   color: #303b49;
-  font-size: 12px;
+  font-size: 13px;
   transition:
     border 150ms ease,
     box-shadow 150ms ease;
@@ -1257,7 +1299,7 @@ input:focus:not(:focus-visible) {
   min-height: 45px;
   margin-top: 2px;
   padding: 12px 15px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .login-submit span {
@@ -1271,7 +1313,7 @@ input:focus:not(:focus-visible) {
   border-radius: 7px;
   background: #fff2f0;
   color: #ad4033;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -1283,7 +1325,7 @@ input:focus:not(:focus-visible) {
   margin-top: 25px;
   border-top: 1px solid #edf0f3;
   color: #8b95a1;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .login-footnote .online-dot {
@@ -1301,14 +1343,14 @@ input:focus:not(:focus-visible) {
   border-radius: 8px;
   background: #fdf9f0;
   color: #85683a;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
 .demo-hint strong {
   color: #6d5430;
   font-family: "DM Mono", monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .demo-badge {
@@ -1320,7 +1362,41 @@ input:focus:not(:focus-visible) {
   background: #e2a33c;
   color: #fff;
   font-family: "DM Mono", monospace;
-  font-size: 8px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+}
+
+.account-hint {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 13px;
+  margin-top: 20px;
+  border: 1px solid #d9e6f5;
+  border-radius: 8px;
+  background: #f3f8fe;
+  color: #4a6584;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.account-hint strong {
+  color: #2f4b6b;
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+}
+
+.account-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #4779c3;
+  color: #fff;
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.8px;
 }
@@ -1332,7 +1408,18 @@ input:focus:not(:focus-visible) {
   justify-content: center;
   overflow: hidden;
   padding: 60px clamp(35px, 7vw, 95px);
-  background: #17232e;
+  background:
+    radial-gradient(
+      900px 520px at 85% -15%,
+      rgba(220, 105, 88, 0.24),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 460px at -10% 115%,
+      rgba(71, 121, 195, 0.18),
+      transparent 60%
+    ),
+    #17232e;
   color: white;
 }
 
@@ -1394,7 +1481,7 @@ input:focus:not(:focus-visible) {
 .aside-content > p {
   max-width: 400px;
   color: #a7b2be;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 2;
 }
 
@@ -1421,12 +1508,12 @@ input:focus:not(:focus-visible) {
 .aside-stat-row strong {
   color: #e47b6a;
   font-family: "DM Mono", monospace;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .aside-stat-row span {
   color: #bac3cc;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -1437,7 +1524,7 @@ input:focus:not(:focus-visible) {
   left: 25px;
   color: #758390;
   font-family: "DM Mono", monospace;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 1.1px;
   text-align: center;
 }
@@ -1501,7 +1588,7 @@ input:focus:not(:focus-visible) {
 .modal-heading p {
   margin: 0;
   color: #8a94a0;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -1532,7 +1619,7 @@ input:focus:not(:focus-visible) {
 
 .field-group label {
   color: #4c5867;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1551,7 +1638,7 @@ input:focus:not(:focus-visible) {
   outline: none;
   background: #fff;
   color: #394452;
-  font-size: 11px;
+  font-size: 13px;
   transition:
     border 150ms ease,
     box-shadow 150ms ease;
@@ -1586,7 +1673,7 @@ input:focus:not(:focus-visible) {
   border-radius: 7px;
   background: #f7f8fa;
   color: #8b95a1;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.7;
 }
 
@@ -1616,7 +1703,7 @@ input:focus:not(:focus-visible) {
   background: #f1fbf5;
   color: #287d54;
   box-shadow: 0 10px 35px rgba(30, 48, 60, 0.12);
-  font-size: 11px;
+  font-size: 13px;
   animation: toast-in 180ms ease-out;
 }
 
@@ -1802,13 +1889,13 @@ input:focus:not(:focus-visible) {
   }
 
   .metric-label {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .metric-icon {
     width: 29px;
     height: 29px;
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .metric-value {
@@ -1822,7 +1909,7 @@ input:focus:not(:focus-visible) {
 
   .data-label {
     padding-top: 3px;
-    font-size: 8px;
+    font-size: 10px;
   }
 
   .panel-heading {
@@ -1859,7 +1946,7 @@ input:focus:not(:focus-visible) {
 
   .table-footer {
     padding: 12px;
-    font-size: 8px;
+    font-size: 10px;
   }
 
   .form-modal {

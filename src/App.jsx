@@ -479,7 +479,20 @@ function App() {
           </div>
           <div className="topbar-right">
             <span className="live-indicator">
-              <span /> Live workspace
+              <span
+                className={
+                  apiStatus === "demo"
+                    ? "live-demo"
+                    : apiStatus === "offline"
+                      ? "live-offline"
+                      : undefined
+                }
+              />
+              {apiStatus === "demo"
+                ? "Demo workspace"
+                : apiStatus === "offline"
+                  ? "API offline"
+                  : "Live workspace"}
             </span>
             <div className="topbar-avatar">
               {(user.name || user.username || "U").charAt(0).toUpperCase()}
@@ -499,7 +512,7 @@ function App() {
 
         <div className="page-content">
           {activePage === "dashboard" ? (
-            <Dashboard onNavigate={setActivePage} />
+            <Dashboard onNavigate={setActivePage} apiStatus={apiStatus} />
           ) : (
             <ModulePage
               key={activePage}
@@ -606,18 +619,23 @@ function Login({ onLogin, apiStatus }) {
           </button>
         </form>
 
-        <div className="demo-hint">
-          <span className="demo-badge">DEMO</span>
-          <span>
-            {apiStatus === "demo"
-              ? "Oracle is offline. Use "
-              : "Try the demo store with "}
-            <strong>admin</strong> / <strong>admin123</strong>
-            {apiStatus !== "demo" && (
-              <>, or sign in with your Oracle USERS account</>
-            )}
-          </span>
-        </div>
+        {apiStatus === "demo" ? (
+          <div className="demo-hint">
+            <span className="demo-badge">DEMO</span>
+            <span>
+              Oracle is offline. Use <strong>admin</strong> /{" "}
+              <strong>admin123</strong> to explore sample data.
+            </span>
+          </div>
+        ) : (
+          <div className="account-hint">
+            <span className="account-badge">LOGIN</span>
+            <span>
+              Use the account created in your database: <strong>admin</strong>{" "}
+              / <strong>admin123</strong>
+            </span>
+          </div>
+        )}
 
         <div className="login-footnote">
           <span
@@ -670,7 +688,7 @@ function Login({ onLogin, apiStatus }) {
   );
 }
 
-function Dashboard({ onNavigate }) {
+function Dashboard({ onNavigate, apiStatus }) {
   const [stats, setStats] = useState(EMPTY_STATS);
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -804,10 +822,27 @@ function Dashboard({ onNavigate }) {
       <div className="section-heading">
         <div>
           <h2>Situation summary</h2>
-          <p>Current records from your Oracle database</p>
+          <p>
+            {apiStatus === "demo"
+              ? "In-memory sample records (Oracle offline)"
+              : "Current records from your Oracle database"}
+          </p>
         </div>
         <span className="data-label">
-          <span className="online-dot" /> LIVE DATA
+          <span
+            className={`online-dot ${
+              apiStatus === "demo"
+                ? "dot-demo"
+                : apiStatus === "offline"
+                  ? "dot-offline"
+                  : ""
+            }`}
+          />
+          {apiStatus === "demo"
+            ? "DEMO DATA"
+            : apiStatus === "offline"
+              ? "OFFLINE"
+              : "LIVE DATA"}
         </span>
       </div>
 

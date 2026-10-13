@@ -1,36 +1,70 @@
-# DBMS-ODBC — DisasterOS
+# DisasterOS — DBMS-ODBC
 
-A disaster management web application built with **React (Vite)** on the frontend
-and a **Node.js + Express** API backed by **Oracle 11g through ODBC** on the
-backend. It covers five modules: disasters, incidents, resources, volunteers
-and relief requests, plus a command-center dashboard with live statistics.
+### 🚀 Live demo: **https://dbms-odbc.vercel.app/**
+
+**Sign in with:** `admin` / `admin123`
+
+> A full-stack disaster management system: **React (Vite)** frontend hosted on
+> Vercel, **Node.js + Express** API hosted on Render, and a real
+> **Oracle Autonomous Database (26ai)** in Oracle Cloud, accessed through
+> **ODBC** (Oracle Instant Client + unixODBC).
+
+---
 
 ## Features
 
-- Login against the `USERS` table (Oracle) or built-in demo accounts
-- Dashboard with situation summary metrics and recent incidents
-- Full CRUD for all five modules with search, edit and delete
-- Responsive sidebar layout for desktop and mobile
-- Auto demo mode: if Oracle is unavailable, the API falls back to an in-memory
-  store seeded with sample data so the app can always run
+- **Command-center dashboard** — live situation summary from Oracle: disasters,
+  incidents, resources, volunteers and relief requests, plus recent incidents
+  and quick actions
+- **Five CRUD modules** — disasters, incidents, resources, volunteers and
+  relief requests with search, create, edit and delete
+- **Database-backed login** — authenticates against the Oracle `USERS` table
+- **Referential integrity** — foreign keys enforced (e.g. a disaster that has
+  incidents cannot be deleted)
+- **Connection-aware UI** — sidebar/topbar show `Oracle connected`, `Demo mode`
+  or `API offline` in real time
+- **Auto demo mode** — if Oracle is unreachable, the API falls back to an
+  in-memory store so the app always runs (used for local development)
+- **Responsive layout** — works from phones to wide desktop screens
+
+## Architecture
+
+```
+Browser (React SPA)
+   │
+   ▼
+Vercel  ──  /api/* proxied via vercel.json
+   │
+   ▼
+Render (Docker)  ──  Express API + Oracle Instant Client ODBC driver
+   │  TLS (tcps 1522)
+   ▼
+Oracle Cloud Autonomous Database 26ai (Always Free)
+```
+
+- **Frontend:** React 19, Vite 8, plain CSS (no UI framework)
+- **Backend:** Node.js, Express 5, `odbc` npm package (unixODBC)
+- **Database:** Oracle Autonomous Database (26ai), ODBC driver
+  (Instant Client 23.26 `libsqora`)
 
 ## Project structure
 
-```
+```text
 ├── index.html               # Vite entry
 ├── vite.config.js           # Dev proxy /api -> http://localhost:5000
 ├── Dockerfile               # Deployable API image (Oracle Instant Client ODBC)
+├── docker-entrypoint.sh     # Registers the ODBC driver at container start
 ├── render.yaml              # Render Blueprint (API hosting)
 ├── vercel.json              # Vercel frontend + /api proxy to Render
 ├── db/
-│   ├── schema.sql           # Oracle tables, keys, constraints
-│   └── seed.sql             # Sample data
+│   ├── schema.sql           # Oracle tables, keys, constraints, indexes
+│   └── seed.sql             # Sample data (users + all 5 modules)
 ├── src/
-│   ├── App.jsx              # React application (single page, no router)
+│   ├── App.jsx              # React application (single page)
 │   ├── index.css            # Styles
 │   └── server/
 │       ├── server.js        # Express API (Oracle ODBC or demo mode)
-│       └── demo-store.js    # In-memory fallback store with sample data
+│       └── demo-store.js    # In-memory fallback used when Oracle is down
 ```
 
 ## Running locally
@@ -47,28 +81,16 @@ npm run server
 npm run dev
 ```
 
-Open http://localhost:5173. The Vite dev server proxies `/api` requests to
-`http://localhost:5000`, so no CORS setup is needed in development.
+Open http://localhost:5173. Vite proxies `/api` to `http://localhost:5000`,
+so no CORS setup is needed in development.
 
 ### Backend modes
 
-1. **Oracle mode (default)** — the API tries to connect to the `OracleLab`
-   ODBC DSN using the credentials below. Override with environment variables:
-
-   | Variable         | Default      |
-   | ---------------- | ------------ |
-   | `ORACLE_DSN`     | `OracleLab`  |
-   | `ORACLE_UID`     | `25BCE1823`  |
-   | `ORACLE_PASSWORD`| `25bce1823`  |
-   | `TNS_ADMIN`      | Windows Oracle 11g network admin path |
-
-   Set `REQUIRE_ORACLE=1` if the server must fail (instead of falling back)
-   when Oracle cannot be reached.
-
-2. **Demo mode (automatic fallback)** — when the ODBC driver is missing or the
-   connection fails, the server logs a warning and starts with an in-memory
-   store seeded with sample data. Everything works (login, CRUD, dashboard)
-   but changes are lost on restart. Sample accounts:
+1. **Oracle mode** — used when the `odbc` package loads, the ODBC driver is
+   registered and Oracle is reachable. See the environment variables below.
+2. **Demo mode (automatic fallback)** — when Oracle cannot be reached, the API
+   logs a loud warning and serves an in-memory store seeded with the same data
+   as `db/seed.sql`. Changes reset on restart. Sample accounts:
 
    | Username   | Password      | Role     |
    | ---------- | ------------- | -------- |
@@ -76,132 +98,115 @@ Open http://localhost:5173. The Vite dev server proxies `/api` requests to
    | `operator` | `operator123` | OPERATOR |
    | `viewer`   | `viewer123`   | VIEWER   |
 
-## Database schema (Oracle)
+   Set `REQUIRE_ORACLE=1` to make the server **fail to start** instead of
+   falling back to demo mode (recommended in production).
 
-Ready-to-run scripts: [`db/schema.sql`](db/schema.sql) (tables, keys, checks)
-and [`db/seed.sql`](db/seed.sql) (sample data identical to the demo store).
-They run on 11g, 19c and 23ai. The API expects these tables (ALL_CAPS):
+### Backend environment variables
 
-- `USERS(USER_ID, USERNAME, PASSWORD, FULL_NAME, ROLE)`
-- `DISASTERS(DISASTER_ID, DISASTER_NAME, DISASTER_TYPE, LOCATION, SEVERITY, START_DATE, STATUS)`
-- `INCIDENTS(INCIDENT_ID, DISASTER_ID, DESCRIPTION, LOCATION, REPORTED_BY, INCIDENT_STATUS, REPORTED_DATE)`
-- `RESOURCES(RESOURCE_ID, DISASTER_ID, RESOURCE_NAME, RESOURCE_TYPE, QUANTITY, LOCATION, STATUS)`
-- `VOLUNTEERS(VOLUNTEER_ID, NAME, PHONE, SKILL, LOCATION, AVAILABILITY)`
-- `RELIEF_REQUESTS(REQUEST_ID, DISASTER_ID, REQUESTED_BY, REQUEST_TYPE, DESCRIPTION, LOCATION, PRIORITY, STATUS, REQUEST_DATE)`
+| Variable                   | Purpose                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
+| `ORACLE_CONNECTION_STRING` | Full ODBC connection string, bypasses the DSN (see below)            |
+| `ORACLE_DSN` / `ORACLE_UID` / `ORACLE_PASSWORD` | DSN-based connection (default: `OracleLab` / `25BCE1823` / `25bce1823`) |
+| `TNS_ADMIN`                | Folder with `tnsnames.ora` / `sqlnet.ora` (wallet-based connections) |
+| `REQUIRE_ORACLE=1`         | Fail instead of demo fallback                                        |
+| `PORT`                     | API port (default `5000`; Render sets this automatically)            |
 
-> The `odbc` package is an optional dependency: `npm install` succeeds even on
-> machines without unixODBC/Oracle drivers, and the API then runs in demo mode.
+Example connection string (Oracle Cloud, mTLS **not required**):
+
+```
+Driver={Oracle ODBC Driver};Dbq=(description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.<region>.oraclecloud.com))(connect_data=(service_name=<db>_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)));Uid=admin;Pwd=<ADMIN_PASSWORD>;
+```
+
+Check the mode at any time: `GET /api/health` →
+`{"database":"oracle","demo":false}` or `{"database":"demo","demo":true}`.
+
+## Database (Oracle)
+
+Ready-to-run scripts:
+
+- [`db/schema.sql`](db/schema.sql) — 6 tables with primary keys, foreign keys,
+  `CHECK` constraints matching the UI options, and FK indexes
+- [`db/seed.sql`](db/seed.sql) — sample data identical to the demo store
+  (re-runnable: it clears the tables first)
+
+Tables (columns ALL_CAPS):
+
+| Table | Columns |
+| ----- | ------- |
+| `USERS` | `USER_ID`, `USERNAME`, `PASSWORD`, `FULL_NAME`, `ROLE` |
+| `DISASTERS` | `DISASTER_ID`, `DISASTER_NAME`, `DISASTER_TYPE`, `LOCATION`, `SEVERITY`, `START_DATE`, `STATUS` |
+| `INCIDENTS` | `INCIDENT_ID`, `DISASTER_ID` → DISASTERS, `DESCRIPTION`, `LOCATION`, `REPORTED_BY` → USERS, `INCIDENT_STATUS`, `REPORTED_DATE` |
+| `RESOURCES` | `RESOURCE_ID`, `DISASTER_ID` → DISASTERS, `RESOURCE_NAME`, `RESOURCE_TYPE`, `QUANTITY`, `LOCATION`, `STATUS` |
+| `VOLUNTEERS` | `VOLUNTEER_ID`, `NAME`, `PHONE`, `SKILL`, `LOCATION`, `AVAILABILITY` |
+| `RELIEF_REQUESTS` | `REQUEST_ID`, `DISASTER_ID` → DISASTERS, `REQUESTED_BY` → USERS, `REQUEST_TYPE`, `DESCRIPTION`, `LOCATION`, `PRIORITY`, `STATUS`, `REQUEST_DATE` |
+
+## API endpoints
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| `GET` | `/` , `/api/health` | Health check + current database mode |
+| `GET` | `/api/connect` | Database connectivity test |
+| `POST` | `/api/login` | Login (`username`, `password`) |
+| `GET` | `/api/:module` | List records (module = `disasters`, `incidents`, `resources`, `volunteers`, `relief-requests`) |
+| `POST` | `/api/:module` | Create a record |
+| `PUT` | `/api/:module/:id` | Update a record |
+| `DELETE` | `/api/:module/:id` | Delete a record (blocked when referenced) |
+| `GET` | `/api/dashboard/stats` | Aggregated dashboard counters |
+| `GET` | `/api/dashboard/recent-incidents` | Latest 10 incidents |
 
 ## Deployment
 
-- **Frontend** — a static build (`npm run build`) can be hosted on Vercel,
-  Netlify or GitHub Pages. Point it at a hosted API with
-  `VITE_API_URL=https://your-api.example.com/api` (the API enables CORS).
-- **Backend** — the Express API can be deployed to Render, Railway or Fly.io.
-  It connects to Oracle through the `odbc` package, which needs the **Oracle
-  ODBC driver** (Instant Client + unixODBC) installed on the host. Without
-  that, the API falls back to demo mode. See `Dockerfile` for a container
-  that installs the required system packages.
+### Where it is currently deployed
 
-### Running with a real Oracle database (outside demo mode)
+| Piece | Host | Config |
+| ----- | ---- | ------ |
+| Frontend | Vercel | auto-detected Vite build; `vercel.json` proxies `/api/*` to Render |
+| API | Render (Docker, free plan) | `render.yaml` Blueprint; `REQUIRE_ORACLE=1` |
+| Database | Oracle Cloud Always Free Autonomous DB (26ai) | tables from `db/schema.sql` + `db/seed.sql` |
 
-The server uses Oracle instead of demo data when all three of these are true:
+### Redeploying the API (Render)
 
-1. The `odbc` npm package can be loaded (installed as an optional dependency —
-   if it failed to build, the host is missing the Oracle client/driver).
-2. The Oracle ODBC driver is registered (a DSN like `OracleLab` on Windows, or
-   a driver entry in `/etc/odbcinst.ini` on Linux).
-3. Oracle itself is reachable over the network from the host.
+1. Render → New → **Blueprint** → select this repo (grant GitHub App access to
+   the repo first if it is not listed)
+2. Provide `ORACLE_CONNECTION_STRING` when prompted (it is a secret; not stored
+   in `render.yaml`)
+3. Push to `main` to auto-deploy. Free instances sleep after inactivity — the
+   first request can take ~30–60 s
 
-Deploy-time environment variables:
+The Docker image downloads the Oracle Instant Client 23.26 (basiclite + ODBC)
+from `download.oracle.com`, registers the driver at container start, and runs
+the API with `LD_LIBRARY_PATH` pointing at the driver libraries.
 
-| Variable                   | Purpose                                                            |
-| -------------------------- | ------------------------------------------------------------------ |
-| `ORACLE_CONNECTION_STRING` | Full ODBC connection string, bypasses DSN. Example: `Driver={Oracle ODBC Driver};Dbq=//db-host:1521/ORCL;Uid=user;Pwd=pass;` |
-| `ORACLE_DSN` / `UID` / `PWD` | DSN-based connection (default `OracleLab` / `25BCE1823` / `25bce1823`) |
-| `TNS_ADMIN`                | Directory with `tnsnames.ora` / `sqlnet.ora` (for wallet-based connects) |
-| `REQUIRE_ORACLE=1`         | **Fail to start** instead of falling back to demo mode (recommended in production so a silent demo never hides a broken DB) |
-| `PORT`                     | API port (default 5000)                                            |
+### Redeploying the frontend (Vercel)
 
-Check it really connected via `GET /api/health` → `{"database":"oracle",...}`.
+1. Vercel → Add New → Project → import this repo (grant GitHub access if the
+   repo is not listed) → framework auto-detects Vite → Deploy
+2. No environment variables are needed: `vercel.json` rewrites `/api/*` to the
+   Render service. If your Render service has a different name, update the
+   `destination` URL in `vercel.json`.
 
-### Setting up Oracle Cloud (Always Free Autonomous DB)
+### Setting up the Oracle Cloud database from scratch
 
-1. **Create your account** at https://signup.oraclecloud.com (free tier, never
-   billed). You need a card for identity verification only; Always Free
-   services cost nothing.
-2. **Create an Autonomous Database**: Console → Oracle Database →
-   Autonomous Database → Create. Choose **Always Free**, workload type
-   **Transaction Processing**, database version 23ai (or 19c), and generate a
-   strong **ADMIN password** (keep it). Wait for "Available".
-3. **Run the migrations**: on the DB page → Database Actions → SQL, then run
-   [`db/schema.sql`](db/schema.sql) followed by [`db/seed.sql`](db/seed.sql).
-   Alternatively use SQL Developer / SQLcl connected as ADMIN.
-4. **Download the connection wallet** (DB banner → Database connection →
-   Download wallet, set a wallet password). Every environment that connects
-   needs it; on the server set `TNS_ADMIN` to the folder you extract it into.
-5. **Point the API at it**:
+1. Create a free account at https://signup.oraclecloud.com
+2. Create an **Always Free** Autonomous Database (Transaction Processing),
+   note the ADMIN password
+3. Open **Database Actions → SQL** and run `db/schema.sql`, then `db/seed.sql`
+4. Network settings (Edit network access): ACL `0.0.0.0/0`, mutual TLS
+   **Not required** (required for non-wallet clients such as cloud hosts)
+5. Database connection → copy the `_low` connection string → build the
+   `ORACLE_CONNECTION_STRING` shown above
 
-   ```bash
-   npm install odbc  # needs unixODBC + Oracle Instant Client on the host
-   export TNS_ADMIN=/opt/oracle/wallet
-   export ORACLE_CONNECTION_STRING='Driver={Oracle ODBC Driver};Dbq=YOURDB_low;Uid=admin;Pwd=YOUR_ADMIN_PASSWORD;'
-   export REQUIRE_ORACLE=1
-   npm run server
-   ```
+## Troubleshooting
 
-   `YOURDB_low` is the service alias from the wallet's `tnsnames.ora`
-   (e.g. `disasteros_low`). Verify with `curl http://localhost:5000/api/health`
-   → `"database":"oracle"`. If the ODBC driver cannot load the wallet's
-   `tnsnames.ora`, connect without the wallet by disabling mutual TLS for the
-   DB and using easy-connect syntax:
-   `Dbq=//adb.yourregion.oraclecloud.com:1522/YOURDB_low`.
+| Symptom | Cause / fix |
+| ------- | ----------- |
+| Sidebar shows **Demo mode** | Oracle unreachable; check `/api/health`, Render logs, ACL/mTLS settings |
+| `Can't open lib ... libsqora.so` | Driver dependencies not found — the container sets `LD_LIBRARY_PATH` for this; rebuild the image |
+| `ORA-01017` | Wrong username/password in `ORACLE_CONNECTION_STRING` |
+| `ORA-12545` / connection reset | Wrong service name, or ACL blocking the host / mTLS still required |
+| First request very slow | Render free instance waking from sleep (~30–60 s) |
+| Login page shows **API offline** | API not running or still cold-starting; the indicator refreshes every 30 s |
 
-### Deploying to Render (API) + Vercel (frontend)
+## License
 
-The repository ships with `Dockerfile` (Oracle Instant Client ODBC registered
-at container start), `render.yaml` and `vercel.json`, so both deploys are
-dashboard clicks:
-
-1. **Render** — Dashboard → New → **Blueprint** → select this GitHub repo.
-   Render reads `render.yaml` and asks for `ORACLE_CONNECTION_STRING`; paste:
-
-   ```
-   Driver={Oracle ODBC Driver};Dbq=//adb.<region>.oraclecloud.com:1522/<dbname>_low.adb.oraclecloud.com;Uid=admin;Pwd=<ADMIN_PASSWORD>;
-   ```
-
-   Deploy. Check `https://<service>.onrender.com/api/health` →
-   `{"database":"oracle","demo":false}`. If the service name is not
-   `disasteros-api`, either rename it or update the URL in `vercel.json`.
-   (Free instances sleep after inactivity — the first request can take ~1 min.)
-2. **Vercel** — Dashboard → Add New → Project → import this repo → framework
-   auto-detects Vite → Deploy. `vercel.json` proxies `/api/*` to the Render
-   API, so no environment variables are needed. If you prefer a direct API
-   URL instead of the proxy, set `VITE_API_URL=https://<service>.onrender.com/api`
-   (the API sends permissive CORS headers) and delete the rewrite.
-3. Open the Vercel URL, sign in (`admin` / `admin123`), and confirm the sidebar
-   says **Oracle connected**.
-
-### Where to host Oracle (free / cheap)
-
-If the college lab Oracle 11g is not reachable from the internet, host Oracle
-yourself:
-
-1. **Oracle Cloud Always Free Autonomous DB** (recommended, $0, unlimited
-   time) — sign up at oracle.com/cloud/free. You get 2 Always Free Autonomous
-   Database instances (20 GB storage each, 30 sessions). It runs Oracle 19c/
-   23ai/26ai, is publicly reachable (TLS), and accepts ODBC via the Instant
-   Client ODBC driver with the connection wallet. Create the six tables from
-   the schema section above, then use `ORACLE_CONNECTION_STRING` +
-   `TNS_ADMIN`.
-2. **Oracle AI Database Free on any VPS** — Oracle AI Database Free (formerly
-   XE) is free to install on Ubuntu (Hetzner, Contabo, DigitalOcean VPS from
-   ~€4/month). Full control, closest to your 11g lab setup; requires Linux
-   sysadmin work (install DB, register ODBC driver, open port 1521).
-3. **Tunnel from the lab PC** — if you must keep using the lab Oracle 11g
-   machine, expose port 1521 with a Cloudflare Tunnel or ngrok. Zero cloud
-   cost and no schema migration, but the PC must stay on and you must secure
-   the tunnel (IP allow-list, strong credentials). Only for demos/presentations.
-
-> Your app's SQL is Oracle 11g-flavoured (TO_DATE, NVL, ROWNUM pagination)
-> and runs unmodified on 19c/23ai/26ai and Oracle AI Database Free.
+College DBMS lab project (experiment 10 — ODBC). Use freely for learning.
