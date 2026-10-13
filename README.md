@@ -72,7 +72,9 @@ Open http://localhost:5173. The Vite dev server proxies `/api` requests to
 
 ## Database schema (Oracle)
 
-The API expects these tables (column names in ALL_CAPS):
+Ready-to-run scripts: [`db/schema.sql`](db/schema.sql) (tables, keys, checks)
+and [`db/seed.sql`](db/seed.sql) (sample data identical to the demo store).
+They run on 11g, 19c and 23ai. The API expects these tables (ALL_CAPS):
 
 - `USERS(USER_ID, USERNAME, PASSWORD, FULL_NAME, ROLE)`
 - `DISASTERS(DISASTER_ID, DISASTER_NAME, DISASTER_TYPE, LOCATION, SEVERITY, START_DATE, STATUS)`
@@ -116,6 +118,38 @@ Deploy-time environment variables:
 | `PORT`                     | API port (default 5000)                                            |
 
 Check it really connected via `GET /api/health` → `{"database":"oracle",...}`.
+
+### Setting up Oracle Cloud (Always Free Autonomous DB)
+
+1. **Create your account** at https://signup.oraclecloud.com (free tier, never
+   billed). You need a card for identity verification only; Always Free
+   services cost nothing.
+2. **Create an Autonomous Database**: Console → Oracle Database →
+   Autonomous Database → Create. Choose **Always Free**, workload type
+   **Transaction Processing**, database version 23ai (or 19c), and generate a
+   strong **ADMIN password** (keep it). Wait for "Available".
+3. **Run the migrations**: on the DB page → Database Actions → SQL, then run
+   [`db/schema.sql`](db/schema.sql) followed by [`db/seed.sql`](db/seed.sql).
+   Alternatively use SQL Developer / SQLcl connected as ADMIN.
+4. **Download the connection wallet** (DB banner → Database connection →
+   Download wallet, set a wallet password). Every environment that connects
+   needs it; on the server set `TNS_ADMIN` to the folder you extract it into.
+5. **Point the API at it**:
+
+   ```bash
+   npm install odbc  # needs unixODBC + Oracle Instant Client on the host
+   export TNS_ADMIN=/opt/oracle/wallet
+   export ORACLE_CONNECTION_STRING='Driver={Oracle ODBC Driver};Dbq=YOURDB_low;Uid=admin;Pwd=YOUR_ADMIN_PASSWORD;'
+   export REQUIRE_ORACLE=1
+   npm run server
+   ```
+
+   `YOURDB_low` is the service alias from the wallet's `tnsnames.ora`
+   (e.g. `disasteros_low`). Verify with `curl http://localhost:5000/api/health`
+   → `"database":"oracle"`. If the ODBC driver cannot load the wallet's
+   `tnsnames.ora`, connect without the wallet by disabling mutual TLS for the
+   DB and using easy-connect syntax:
+   `Dbq=//adb.yourregion.oraclecloud.com:1522/YOURDB_low`.
 
 ### Where to host Oracle (free / cheap)
 
